@@ -59,6 +59,53 @@ public class AmazonSearchTest {
     }
 
     @Test
+    public void firstProductPageOpens() {
+        driver.get("https://www.amazon.co.jp");
+
+        // 検索ボックスを待って入力
+        WebElement searchBox = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.id("twotabsearchtextbox"))
+        );
+        searchBox.sendKeys("Java");
+        driver.findElement(By.id("nav-search-submit-button")).click();
+
+        // 検索結果が表示されるまで待つ
+        wait.until(
+                ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-component-type='s-search-result']"))
+        );
+
+        // 最初の商品タイトルをクリック
+        WebElement firstProduct = wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.cssSelector("a.s-line-clamp-4")
+                )
+        );
+        String productName = firstProduct.getText();
+        System.out.println("クリックした商品: " + productName);
+        firstProduct.click();
+
+// 新しいタブに切り替える
+        wait.until(ExpectedConditions.numberOfWindowsToBe(2));
+        String newTab = driver.getWindowHandles().stream()
+                .filter(h -> !h.equals(driver.getWindowHandle()))
+                .findFirst()
+                .orElseThrow();
+        driver.switchTo().window(newTab);
+
+// 商品詳細ページのタイトルを確認
+        wait.until(ExpectedConditions.not(
+                ExpectedConditions.titleIs("")
+        ));
+
+        String detailTitle = driver.getTitle();
+        System.out.println("商品詳細ページタイトル: " + detailTitle);
+        assertFalse(detailTitle.isEmpty(), "商品詳細ページのタイトルが空です");
+
+        // 詳細ページのタイトルが空でないこと
+        assertFalse(detailTitle.isEmpty(), "商品詳細ページのタイトルが空です");
+    }
+
+    @Test
     public void searchResultContainsKeyword() {
         driver.get("https://www.amazon.co.jp");
 
